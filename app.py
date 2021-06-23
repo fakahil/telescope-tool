@@ -237,7 +237,7 @@ pix_size = st.sidebar.number_input('Pixel size (in arcseconds):',value=0.5)
 st.write('You have selected a pixel size of', pix_size, 'arcseconds/pixel')
 
 size = st.sidebar.number_input('Size of the detector (in pixels):',value=2048)
-st.write('You have selected a pixel size of', size, 'pixels')
+st.write('You have selected a camera with size of', size, 'pixels')
 
 distance = st.sidebar.number_input('Distance of Solar Orbiter to the Sun (in AU):',value=0.5) 
 st.write('You have selected SOLO-SUN distance of', distance, 'AU')
