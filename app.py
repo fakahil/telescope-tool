@@ -13,7 +13,7 @@ from io import BytesIO
 import PIL
 from scipy import ndimage
 
-st.title('PHI/HRT telescope tool!')
+st.title('Your telescope tool!')
 
 ######################## Functions
 
@@ -226,7 +226,7 @@ choice = st.sidebar.selectbox('What do you want to do?',menu)
 ap = st.sidebar.number_input('Telescope aperture size (in nm):',value=140)
 st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
 
-lam = st.sidebar.number_input('Telescope working wavelength (in nm):',value=617.3*10**(-6),min_value=1e-7, max_value=0.1)
+lam = 10**(-6)*st.sidebar.number_input('Telescope working wavelength (in Angstroms):',value=617.3,min_value=200.3, max_value=1000.3)
 st.write('You selected a working wavelength of', lam, 'nm')
 
 
@@ -234,13 +234,13 @@ focal = st.sidebar.number_input('Effective focal length (in nm):',value=4125.3)
 st.write('You have selected a telescope with an effective focal length of', focal, 'nm')
 
 pix_size = st.sidebar.number_input('Pixel size (in arcseconds):',value=0.5)
-st.write('You have selected a pixel size of', pix_size, 'arcseconds/pixel')
+st.write('You have selected a plate scale of', pix_size, 'arcseconds/pixel')
 
 size = st.sidebar.number_input('Size of the detector (in pixels):',value=2048)
 st.write('You have selected a camera with size of', size, 'pixels')
 
-distance = st.sidebar.number_input('Distance of Solar Orbiter to the Sun (in AU):',value=0.5) 
-st.write('You have selected SOLO-SUN distance of', distance, 'AU')
+distance = st.sidebar.number_input('Distance of your Solar telescope to the Sun (in AU):',value=0.5) 
+st.write('You have selected Telescope-SUN distance of', distance, 'AU')
 options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','spatial resolution (in km)', 'pupil size'])
 
 if choice == 'Figure out my telescope':
@@ -249,12 +249,13 @@ if choice == 'Figure out my telescope':
     elif options == 'pupil size':
         st.write('The pupil size of your optical setup is', pupil_size(ap,lam,pix_size,size),'pixels' )
     elif options == 'spatial resolution (in km)':
-        st.write('The HRT resolution at', distance, 'AU', 'is', 0.5*arctokm(distance)[1], 'km')
+        st.write('The camera resolution at', distance, 'AU', 'is', 0.5*arctokm(distance)[1], 'km')
 
     
 if choice == 'Work with aberrations':
+    st.write('Find out the right [coefficient number of each aberration](https://github.com/fakahil/PyPD/blob/master/zernike.py)')
     st.sidebar.title('Choose Zernike coefficients number:')
-    z = st.sidebar.selectbox("Number of Zernike Polynomials",[2,3,4])
+    z = st.sidebar.selectbox("Number of Zernike Polynomials",[1,3,5,7,8,10])
     coefficients = []
     for i in np.arange(z):
         val = st.sidebar.number_input('Value of Zernike coefficient #'+str(i)+':')
