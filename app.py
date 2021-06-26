@@ -164,7 +164,7 @@ def complex_pupil(A,Mask):
     abbe_z = Mask*abbe
     return abbe_z
 
-def figure(data):
+def figure(data,title):
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(1,1,1)
     im  = ax.imshow(data,cmap=plt.get_cmap('inferno'),origin='lower')
@@ -173,6 +173,7 @@ def figure(data):
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size=0.15, pad=0.05)
     cbar = plt.colorbar(im, cax=cax,orientation='vertical')
+    cbar.set_label(title,fontsize=20)
     return fig
     '''
 def get_image_download_link(img):
@@ -218,32 +219,75 @@ def plot_az(mtf_2d,d,lam,f):
     plt.legend()
     return fig
 
+zernikelist = ["Z20 Defocus",
+						"Z22 Primary Astigmatism at 45",
+						"Z22 Primary Astigmatism at 0",
+						"Z31 Primary y Coma",
+						"Z31 Primary x Coma",
+						"Z33 y Trefoil",
+						"Z33 x Trefoil",
+						"Z40 Primary Spherical",
+						"Z42 Secondary Astigmatism at 0",
+						"Z42 Secondary Astigmatism at 45",
+						"Z44 x Tetrafoil",
+						"Z44 y Tetrafoil",
+						"Z51 Secondary x Coma",
+						"Z51 Secondary y Coma",
+						"Z53 Secondary x Trefoil",
+						"Z53 Secondary y Trefoil",
+						"Z55 x Pentafoil",
+						"Z55 y Pentafoil",
+						"Z60 Secondary Spherical",
+						"Z62 Tertiary Astigmatism at 45",
+						"Z62 Tertiary Astigmatism at 0",
+						"Z64 Secondary x Trefoil",
+						"Z64 Secondary y Trefoil",
+						"Z66 Hexafoil Y",
+						"Z66 Hexafoil X",
+						"Z71 Tertiary y Coma",
+						"Z71 Tertiary x Coma",
+						"Z73 Tertiary y Trefoil",
+						"Z73 Tertiary x Trefoil",
+						"Z75 Secondary Pentafoil Y",
+						"Z75 Secondary Pentafoil X",
+						"Z77 Heptafoil Y",
+						"Z77 Heptafoil X",
+						"Z80 Tertiary Spherical"]
 
 
-menu = ['Figure out my telescope', 'Work with aberrations']
+menu = ['Figure out my telescope', 'Visualize telescope aberrations']
 choice = st.sidebar.selectbox('What do you want to do?',menu)
-#st.subheader('test')
 ap = st.sidebar.number_input('Telescope aperture size (in nm):',value=140)
-st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
+#st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
 
 lam = 10**(-6)*st.sidebar.number_input('Telescope working wavelength (in Angstroms):',value=617.3,min_value=200.3, max_value=1000.3)
-st.write('You selected a working wavelength of', lam, 'nm')
+#st.write('You selected a working wavelength of', lam, 'nm')
 
 
 focal = st.sidebar.number_input('Effective focal length (in nm):',value=4125.3)
-st.write('You have selected a telescope with an effective focal length of', focal, 'nm')
+#st.write('You have selected a telescope with an effective focal length of', focal, 'nm')
 
 pix_size = st.sidebar.number_input('Pixel size (in arcseconds):',value=0.5)
-st.write('You have selected a plate scale of', pix_size, 'arcseconds/pixel')
+#st.write('You have selected a plate scale of', pix_size, 'arcseconds/pixel')
 
 size = st.sidebar.number_input('Size of the detector (in pixels):',value=2048)
-st.write('You have selected a camera with size of', size, 'pixels')
+#st.write('You have selected a camera with size of', size, 'pixels')
 
-distance = st.sidebar.number_input('Distance of your Solar telescope to the Sun (in AU):',value=0.5) 
-st.write('You have selected Telescope-SUN distance of', distance, 'AU')
-options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','spatial resolution (in km)', 'pupil size'])
+distance = st.sidebar.number_input('Distance of your Solar telescope to the Sun (in AU). For ground-based and geosynchronous satellites, enter 1:',value=0.5) 
+#st.write('You have selected Telescope-SUN distance of', distance, 'AU')
+#options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','spatial resolution (in km)', 'pupil size'])
 
 if choice == 'Figure out my telescope':
+    st.subheader('Compute some important parameters for your work:')
+    st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
+    st.write('You selected a working wavelength of', lam, 'nm')
+    st.write('You have selected a telescope with an effective focal length of', focal, 'nm')
+    st.write('You have selected a camera plate scale of', pix_size, 'arcseconds/pixel')
+    st.write('You have selected a camera with size of', size, 'pixels')
+    st.write('You have selected Telescope-SUN distance of', distance, 'AU')
+
+    options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','spatial resolution (in km)', 'pupil size'])
+
     if options == 'spatial resolution (in arcsec)':
         st.write('The spatial resolution of your optical setup is', spat_res(lam,ap),'arcsec' )
     elif options == 'pupil size':
@@ -252,13 +296,14 @@ if choice == 'Figure out my telescope':
         st.write('The camera resolution at', distance, 'AU', 'is', 0.5*arctokm(distance)[1], 'km')
 
     
-if choice == 'Work with aberrations':
-    st.write('Find out the right [coefficient number of each aberration](https://github.com/fakahil/PyPD/blob/master/zernike.py)')
+if choice == 'Visualize telescope aberrations':
+    st.subheader('Zernike coefficients are in units of wavelength (e.g. 0.5 which corresponds to half a wave). Piston/Tip/tilt are not included.')
+    #st.write('Find out the right [coefficient number of each aberration](https://github.com/fakahil/PyPD/blob/master/zernike.py)')
     st.sidebar.title('Choose Zernike coefficients number:')
     z = st.sidebar.selectbox("Number of Zernike Polynomials",[1,3,5,7,8,10])
     coefficients = []
     for i in np.arange(z):
-        val = st.sidebar.number_input('Value of Zernike coefficient #'+str(i)+':')
+        val = st.sidebar.number_input('Zernike coefficient for the '+zernikelist[i]+' aberration'+':',value=0.03)
         coefficients.append(val)
     coefficients = np.asarray(coefficients)
     st.write('You selected the first',z, 'Zernike Polynomials')
@@ -271,11 +316,11 @@ if choice == 'Work with aberrations':
     mtf = MTF(otf)
     options3 = st.selectbox('What do you want to plot?',['Wavefront', '2D PSF', '2D MTF','1D MTF'])
     if options3 == 'Wavefront':
-        st.pyplot(figure(sim_phase))        
+        st.pyplot(figure(sim_phase/(2*np.pi), 'WF error[$\lambda$]'))        
     elif options3 == '2D PSF':
-        st.pyplot(figure(np.log(np.abs(psf))))
+        st.pyplot(figure(np.log(np.abs(psf)),'PSF'))
     elif options3 == '2D MTF':
-        st.pyplot(figure(fftshift(mtf)))
+        st.pyplot(figure(fftshift(mtf),'MTF'))
     elif options3 == '1D MTF':
         st.pyplot(plot_az(fftshift(mtf),ap,lam,focal))
     
