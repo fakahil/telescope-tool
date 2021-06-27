@@ -92,6 +92,8 @@ def pupil_size(D,lam,pix,size):
         deltanu = 1./(size*pixrad)     # Sampling interval in rad^-1
         rpupil = nu_cutoff/(2*deltanu) #pupil size in pixels
         return np.int(rpupil)
+def platescale(f,px):
+	    return 206265*px/f
 
 def arctokm(d):
         R = 696000 #in km
@@ -257,17 +259,17 @@ zernikelist = ["Z20 Defocus",
 
 menu = ['Figure out my telescope', 'Visualize telescope aberrations']
 choice = st.sidebar.selectbox('What do you want to do?',menu)
-ap = st.sidebar.number_input('Telescope aperture size (in nm):',value=140)
+ap = st.sidebar.number_input('Telescope aperture size (in mm):',value=140)
 #st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
 
-lam = 10**(-6)*st.sidebar.number_input('Telescope working wavelength (in Angstroms):',value=617.3,min_value=200.3, max_value=1000.3)
+lam = 10**(-6)*st.sidebar.number_input('Telescope working wavelength (in nm):',value=617.3,min_value=200.3, max_value=1000.3)
 #st.write('You selected a working wavelength of', lam, 'nm')
 
 
-focal = st.sidebar.number_input('Effective focal length (in nm):',value=4125.3)
+focal = st.sidebar.number_input('Effective focal length (in mm):',value=4125.3)
 #st.write('You have selected a telescope with an effective focal length of', focal, 'nm')
 
-pix_size = st.sidebar.number_input('Pixel size (in arcseconds):',value=0.5)
+pix_size = st.sidebar.number_input('Pixel size (in micrometer):',value=10)
 #st.write('You have selected a plate scale of', pix_size, 'arcseconds/pixel')
 
 size = st.sidebar.number_input('Size of the detector (in pixels):',value=2048)
@@ -279,26 +281,28 @@ distance = st.sidebar.number_input('Distance of your Solar telescope to the Sun 
 
 if choice == 'Figure out my telescope':
     st.subheader('Compute some important parameters for your work:')
-    st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
-    st.write('You selected a working wavelength of', lam, 'nm')
-    st.write('You have selected a telescope with an effective focal length of', focal, 'nm')
-    st.write('You have selected a camera plate scale of', pix_size, 'arcseconds/pixel')
+    st.write('You selected a telescope with an entrance aperture of ', ap, 'mm')
+    st.write('You selected a working wavelength of', lam/(10**(-6)), 'nm')
+    st.write('You have selected a telescope with an effective focal length of', focal, 'mm')
+    st.write('You have selected a camera with a pixel size of', pix_size, 'micrometer')
     st.write('You have selected a camera with size of', size, 'pixels')
     st.write('You have selected Telescope-SUN distance of', distance, 'AU')
 
-    options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','spatial resolution (in km)', 'pupil size'])
+    options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','platescale (in arcsec/pixel)', 'spatial resolution (in km)','pupil size'])
 
     if options == 'spatial resolution (in arcsec)':
         st.write('The spatial resolution of your optical setup is', spat_res(lam,ap),'arcsec' )
-    elif options == 'pupil size':
-        st.write('The pupil size of your optical setup is', pupil_size(ap,lam,pix_size,size),'pixels' )
     elif options == 'spatial resolution (in km)':
-        st.write('The camera resolution at', distance, 'AU', 'is', 0.5*arctokm(distance)[1], 'km')
+        st.write('Your camera resolution at', distance, 'AU', 'is', platescale(focal,pix_size*(10**(-3)))*arctokm(distance)[1], 'km')
+    elif options == 'platescale (in arcsec/pixel)':
+        st.write('The platescale of your telescope-detector is',platescale(focal,pix_size*(10**(-3))) , 'arcseconds/pixel')
+    elif options == 'pupil size':
+        st.write('The pupil size of your optical setup is', pupil_size(ap,lam,platescale(focal,pix_size*(10**(-3))),size),'pixels' )
 
     
 if choice == 'Visualize telescope aberrations':
     st.subheader('Zernike coefficients are in units of wavelength (e.g. 0.5 which corresponds to half a wave). Piston/Tip/tilt are not included.')
-    #st.write('Find out the right [coefficient number of each aberration](https://github.com/fakahil/PyPD/blob/master/zernike.py)')
+    st.write('Choose the [right Zernikes for each aberration](https://github.com/fakahil/PyPD/blob/master/zernike.py)')
     st.sidebar.title('Choose Zernike coefficients number:')
     z = st.sidebar.selectbox("Number of Zernike Polynomials",[1,3,5,7,8,10])
     coefficients = []
@@ -307,18 +311,18 @@ if choice == 'Visualize telescope aberrations':
         coefficients.append(val)
     coefficients = np.asarray(coefficients)
     st.write('You selected the first',z, 'Zernike Polynomials')
-    rpupil = pupil_size(ap,lam,pix_size,size)
+    rpupil = pupil_size(ap,lam,platescale(focal,pix_size*(10**(-3))),size)
     sim_phase = center(coefficients,size,rpupil,z)
     Mask = mask(rpupil, size)
     pupil_com = complex_pupil(sim_phase,Mask)
     psf = PSF(pupil_com)
     otf = OTF(psf)
     mtf = MTF(otf)
-    options3 = st.selectbox('What do you want to plot?',['Wavefront', '2D PSF', '2D MTF','1D MTF'])
+    options3 = st.selectbox('What do you want to plot?',['Wavefront', '2D MTF','1D MTF'])
     if options3 == 'Wavefront':
         st.pyplot(figure(sim_phase/(2*np.pi), 'WF error[$\lambda$]'))        
-    elif options3 == '2D PSF':
-        st.pyplot(figure(np.log(np.abs(psf)),'PSF'))
+    #elif options3 == '2D PSF':
+     #   st.pyplot(figure(np.log(np.abs(psf)),'PSF'))
     elif options3 == '2D MTF':
         st.pyplot(figure(fftshift(mtf),'MTF'))
     elif options3 == '1D MTF':
