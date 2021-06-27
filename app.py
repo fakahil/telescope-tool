@@ -259,7 +259,7 @@ zernikelist = ["Z20 Defocus",
 
 menu = ['Figure out my telescope', 'Visualize telescope aberrations']
 choice = st.sidebar.selectbox('What do you want to do?',menu)
-ap = st.sidebar.number_input('Telescope aperture size (in mm):',value=140)
+ap = st.sidebar.number_input('Telescope entrance aperture size (in mm):',value=140)
 #st.write('You selected a telescope with an entrance aperture of ', ap, 'nm')
 
 lam = 10**(-6)*st.sidebar.number_input('Telescope working wavelength (in nm):',value=617.3,min_value=200.3, max_value=1000.3)
@@ -288,26 +288,28 @@ if choice == 'Figure out my telescope':
     st.write('You have selected a camera with size of', size, 'pixels')
     st.write('You have selected Telescope-SUN distance of', distance, 'AU')
 
-    options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','platescale (in arcsec/pixel)', 'spatial resolution (in km)','pupil size'])
+    options = st.selectbox('What would you like to compute?',['spatial resolution (arcsec)','platescale (arcsec/pixel)', 'spatial resolution (km)','Field of view (FOV, arcsec)','Exit pupil size (pixels)'])
 
-    if options == 'spatial resolution (in arcsec)':
+    if options == 'spatial resolution (arcsec)':
         st.write('The spatial resolution of your optical setup is', spat_res(lam,ap),'arcsec' )
-    elif options == 'spatial resolution (in km)':
+    elif options == 'spatial resolution (km)':
         st.write('Your camera resolution at', distance, 'AU', 'is', platescale(focal,pix_size*(10**(-3)))*arctokm(distance)[1], 'km')
-    elif options == 'platescale (in arcsec/pixel)':
+    elif options == 'platescale (arcsec/pixel)':
         st.write('The platescale of your telescope-detector is',platescale(focal,pix_size*(10**(-3))) , 'arcseconds/pixel')
-    elif options == 'pupil size':
-        st.write('The pupil size of your optical setup is', pupil_size(ap,lam,platescale(focal,pix_size*(10**(-3))),size),'pixels' )
+    elif options == 'Field of view (FOV, arcsec)':
+    	st.write('The FOV of your telescope is', size*platescale(focal,pix_size*(10**(-3))), 'arcseconds')
+    elif options == 'Exit pupil size (pixels)':
+        st.write('The Exit pupil size of your optical setup is', pupil_size(ap,lam,platescale(focal,pix_size*(10**(-3))),size),'pixels' )
 
     
 if choice == 'Visualize telescope aberrations':
     st.subheader('Zernike coefficients are in units of wavelength (e.g. 0.5 which corresponds to half a wave). Piston/Tip/tilt are not included.')
     st.write('Choose the [right Zernikes for each aberration](https://github.com/fakahil/PyPD/blob/master/zernike.py)')
     st.sidebar.title('Choose Zernike coefficients number:')
-    z = st.sidebar.selectbox("Number of Zernike Polynomials",[1,3,5,7,8,10])
+    z = st.sidebar.selectbox("Number of Zernike Polynomials",[1,3,5,7,8,10,14,16,18,20,22,23])
     coefficients = []
     for i in np.arange(z):
-        val = st.sidebar.number_input('Zernike coefficient for the '+zernikelist[i]+' aberration'+':',value=0.03)
+        val = st.sidebar.number_input(zernikelist[i]+' aberration'+':',value=0.02)
         coefficients.append(val)
     coefficients = np.asarray(coefficients)
     st.write('You selected the first',z, 'Zernike Polynomials')
