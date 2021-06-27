@@ -84,7 +84,7 @@ def Zernike_polar(coefficients, r, u, co_num):
 
 
 def spat_res(la,D):
-        return 206265*lam/D
+        return np.round(206265*lam/D)
 
 def pupil_size(D,lam,pix,size):
         pixrad = pix*np.pi/(180*3600)  # Pixel-size in radians
@@ -102,7 +102,7 @@ def arctokm(d):
         alpha_arc = alpha_rad*206265
         
         factor = (2*R)/alpha_arc
-        return alpha_arc, factor
+        return alpha_arc, np.round(factor)
 
 ## function for making the phase in a unit circle
 def phase(coefficients,rpupil,co_num):
