@@ -275,7 +275,7 @@ pix_size = st.sidebar.number_input('Pixel size (in micrometer):',value=10)
 size = st.sidebar.number_input('Size of the detector (in pixels):',value=2048)
 #st.write('You have selected a camera with size of', size, 'pixels')
 
-distance = st.sidebar.number_input('Distance of your Solar telescope to the Sun (in AU). For ground-based and geosynchronous satellites, enter 1:',value=0.5) 
+distance = st.sidebar.number_input('Distance of your Solar telescope to the Sun (in AU)',value=0.5) 
 #st.write('You have selected Telescope-SUN distance of', distance, 'AU')
 #options = st.selectbox('What would you like to compute?',['spatial resolution (in arcsec)','spatial resolution (in km)', 'pupil size'])
 
